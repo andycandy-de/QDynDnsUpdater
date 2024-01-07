@@ -129,7 +129,7 @@ services:
 ## Links
 
 * Github - https://github.com/andycandy-de/QDynDnsUpdater
-* Docker Hub - https://hub.docker.com/repository/docker/andycandyde/q-dyndns-updater
+* Docker Hub - https://hub.docker.com/r/andycandyde/q-dyndns-updater
 
 ## License
 
