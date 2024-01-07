@@ -126,6 +126,11 @@ services:
       - IP_RESOLVER_HTTP_GET_URL=https://myexternalip.com/raw
 ```
 
+## Links
+
+* Github - https://github.com/andycandy-de/QDynDnsUpdater
+* Docker Hub - https://hub.docker.com/repository/docker/andycandyde/q-dyndns-updater
+
 ## License
 
 MIT License
