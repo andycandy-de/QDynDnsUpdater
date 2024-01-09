@@ -46,7 +46,7 @@ public class CheckAndUpdateApp {
 
     @RunOnVirtualThread
     @ConsumeEvent("start")
-    public void start(String ignore) {
+    public void start(Object ignore) {
         try {
             if (isActive(times.get())) {
                 checkAndUpdate();
@@ -58,7 +58,7 @@ public class CheckAndUpdateApp {
 
     @RunOnVirtualThread
     @ConsumeEvent("finish")
-    public void finish(String ignore) {
+    public void finish(Object ignore) {
         if (isActive(times.incrementAndGet())) {
             Optional.of(config)
                     .map(Config::getInterval)
