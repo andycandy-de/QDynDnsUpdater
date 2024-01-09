@@ -65,9 +65,14 @@ public class CommandWantedIpResolver implements IWantedIpResolver {
 
     private Process exec(String command) throws IOException {
         StringTokenizer st = new StringTokenizer(command);
-        String[] cmdarray = new String[st.countTokens()];
+        String[] cmdArray = new String[st.countTokens()];
         for (int i = 0; st.hasMoreTokens(); i++)
-            cmdarray[i] = st.nextToken();
-        return Runtime.getRuntime().exec(cmdarray);
+            cmdArray[i] = st.nextToken();
+        return Runtime.getRuntime().exec(cmdArray);
+    }
+
+    @Override
+    public String getType() {
+        return "command";
     }
 }

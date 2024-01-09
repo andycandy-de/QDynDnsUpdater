@@ -2,30 +2,31 @@ package com.github.andycandy_de.q_dyndns_updater.wanted_ip_resolver;
 
 import com.github.andycandy_de.q_dyndns_updater.config.Config;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Any;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
+import java.util.Objects;
+
 @ApplicationScoped
-public class WantedIpResolver implements IWantedIpResolver {
+public class WantedIpResolver {
 
     @Inject
-    StaticWantedIpResolver staticWantedIpResolver;
-
-    @Inject
-    HttpGetWantedIpResolver httpGetWantedIpResolver;
-
-    @Inject
-    CommandWantedIpResolver commandWantedIpResolver;
+    @Any
+    Instance<IWantedIpResolver> wantedIpResolvers;
 
     @Inject
     Config config;
 
-    @Override
     public String resolveWantedIp() {
-        return switch (config.getIpResolverType()) {
-            case "static" -> staticWantedIpResolver.resolveWantedIp();
-            case "http_get" -> httpGetWantedIpResolver.resolveWantedIp();
-            case "command" -> commandWantedIpResolver.resolveWantedIp();
-            default -> null;
-        };
+        return wantedIpResolvers.stream()
+                .filter(this::filterType)
+                .map(IWantedIpResolver::resolveWantedIp)
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("No valid type found! %s".formatted(config.getIpResolverType())));
+    }
+
+    private boolean filterType(IWantedIpResolver wantedIpResolver) {
+        return Objects.equals(wantedIpResolver.getType(), config.getIpResolverType());
     }
 }

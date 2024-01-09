@@ -25,9 +25,9 @@ public class Helper {
                 .build(clazz);
     }
 
-    public URI createUri(String updateUrl, String username, String password) {
+    public URI createUri(URI updateUrl, String username, String password) {
         final String userInfo = "%s:%s".formatted(username, password);
-        return UriBuilder.fromUri(URI.create(updateUrl)).userInfo(userInfo).build();
+        return UriBuilder.fromUri(updateUrl).userInfo(userInfo).build();
     }
 
     public String getAuthHeader(String username, String password) {
@@ -36,10 +36,6 @@ public class Helper {
                 .map(Base64.getEncoder()::encodeToString)
                 .map("Basic %s"::formatted)
                 .orElseThrow();
-    }
-
-    public String getHost(String url) {
-        return URI.create(url).getHost();
     }
 
     public String findDnsIp(String domain) {

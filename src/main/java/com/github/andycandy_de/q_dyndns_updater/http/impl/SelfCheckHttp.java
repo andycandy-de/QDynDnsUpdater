@@ -1,6 +1,6 @@
 package com.github.andycandy_de.q_dyndns_updater.http.impl;
 
-import com.github.andycandy_de.q_dyndns_updater.CheckUuidHolder;
+import com.github.andycandy_de.q_dyndns_updater.SelfCheckUuidHolder;
 import com.github.andycandy_de.q_dyndns_updater.http.ISelfCheckHttp;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
@@ -14,13 +14,13 @@ public class SelfCheckHttp implements ISelfCheckHttp {
     Logger logger;
 
     @Inject
-    CheckUuidHolder checkUuidHolder;
+    SelfCheckUuidHolder selfCheckUuidHolder;
 
     @Override
     public String selfCheck(String uuid) {
         logger.info("Receiving self check with requestUuid '%s'!".formatted(uuid));
         return Optional.ofNullable(uuid)
-                .map(checkUuidHolder::findResponseUuid)
+                .map(selfCheckUuidHolder::findResponseUuid)
                 .orElseThrow(NotFoundException::new);
     }
 }

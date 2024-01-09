@@ -7,8 +7,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
-import java.net.URI;
-
 @ApplicationScoped
 public class HttpGetWantedIpResolver implements IWantedIpResolver {
 
@@ -24,10 +22,15 @@ public class HttpGetWantedIpResolver implements IWantedIpResolver {
     @Override
     public String resolveWantedIp() {
         try {
-            return helper.createRestClient(URI.create(config.getIpResolverHttpGetUrl()), IGetStringHttp.class).getString();
+            return helper.createRestClient(config.getIpResolverHttpGetUrl(), IGetStringHttp.class).getString();
         } catch (Exception e) {
             logger.warn("Unable to get wanted ip with the url '%s'.".formatted(config.getIpResolverHttpGetUrl()), e);
         }
         return null;
+    }
+
+    @Override
+    public String getType() {
+        return "http_get";
     }
 }

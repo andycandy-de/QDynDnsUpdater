@@ -1,6 +1,6 @@
 package com.github.andycandy_de.q_dyndns_updater.self_checker;
 
-import com.github.andycandy_de.q_dyndns_updater.CheckUuidHolder;
+import com.github.andycandy_de.q_dyndns_updater.SelfCheckUuidHolder;
 import com.github.andycandy_de.q_dyndns_updater.config.Config;
 import com.github.andycandy_de.q_dyndns_updater.helper.Helper;
 import com.github.andycandy_de.q_dyndns_updater.http.ISelfCheckHttp;
@@ -8,7 +8,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
-import java.net.URI;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -19,7 +18,7 @@ public class SelfChecker {
     Logger logger;
 
     @Inject
-    CheckUuidHolder checkUuidHolder;
+    SelfCheckUuidHolder selfCheckUuidHolder;
 
     @Inject
     Helper helper;
@@ -32,7 +31,7 @@ public class SelfChecker {
         final String responseUuid = UUID.randomUUID().toString();
         logger.info("Sending self check with requestUuid='%s' and responseUuid='%s'".formatted(requestUuid, responseUuid));
         try {
-            checkUuidHolder.addUuid(requestUuid, responseUuid);
+            selfCheckUuidHolder.addUuid(requestUuid, responseUuid);
             if (Objects.equals(responseUuid, getCheckUuid(requestUuid))) {
                 logger.info("Self check was successful!");
                 return true;
@@ -40,13 +39,13 @@ public class SelfChecker {
         } catch (Exception ignored) {
             //ignore
         } finally {
-            checkUuidHolder.removeUuid(requestUuid);
+            selfCheckUuidHolder.removeUuid(requestUuid);
         }
         logger.info("Self check was not successful!");
         return false;
     }
 
     private String getCheckUuid(String requestUuid) {
-        return helper.createRestClient(URI.create(config.getSelfCheckUrl()), ISelfCheckHttp.class).selfCheck(requestUuid);
+        return helper.createRestClient(config.getSelfCheckUrl(), ISelfCheckHttp.class).selfCheck(requestUuid);
     }
 }

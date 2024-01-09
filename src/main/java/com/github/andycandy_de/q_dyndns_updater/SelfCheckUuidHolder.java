@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ApplicationScoped
-public class CheckUuidHolder {
+public class SelfCheckUuidHolder {
 
     private Map<String, String> uuidMap = new ConcurrentHashMap<>();
 

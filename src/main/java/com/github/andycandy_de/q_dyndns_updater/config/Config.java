@@ -3,6 +3,7 @@ package com.github.andycandy_de.q_dyndns_updater.config;
 import lombok.Builder;
 import lombok.Data;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 
@@ -18,13 +19,13 @@ public class Config {
 
     private Boolean selfCheck;
 
-    private String selfCheckUrl;
+    private URI selfCheckUrl;
 
     private List<DynDnsConfig> dynDnsConfigs;
 
     private String ipResolverType;
 
-    private String ipResolverHttpGetUrl;
+    private URI ipResolverHttpGetUrl;
 
     private String ipResolverStaticIp;
 

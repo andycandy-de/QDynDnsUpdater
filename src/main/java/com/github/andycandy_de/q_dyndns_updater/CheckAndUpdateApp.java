@@ -7,12 +7,11 @@ import com.github.andycandy_de.q_dyndns_updater.http_client.IDynDnsUpdate;
 import com.github.andycandy_de.q_dyndns_updater.self_checker.SelfChecker;
 import com.github.andycandy_de.q_dyndns_updater.wanted_ip_resolver.WantedIpResolver;
 import io.quarkus.runtime.Quarkus;
-import io.quarkus.runtime.Startup;
-import io.smallrye.context.api.ManagedExecutorConfig;
+import io.quarkus.vertx.ConsumeEvent;
+import io.smallrye.common.annotation.RunOnVirtualThread;
+import io.vertx.core.eventbus.EventBus;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.eclipse.microprofile.context.ManagedExecutor;
-import org.eclipse.microprofile.context.ThreadContext;
 import org.jboss.logging.Logger;
 
 import java.net.URI;
@@ -25,7 +24,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 @ApplicationScoped
 public class CheckAndUpdateApp {
 
-    AtomicInteger times = new AtomicInteger(0);
+    final AtomicInteger times = new AtomicInteger(0);
+
+    @Inject
+    EventBus bus;
 
     @Inject
     Logger logger;
@@ -42,71 +44,68 @@ public class CheckAndUpdateApp {
     @Inject
     WantedIpResolver wantedIpResolver;
 
-    @Inject
-    @ManagedExecutorConfig(maxAsync = 1, propagated = ThreadContext.CDI)
-    ManagedExecutor managedExecutor;
+    @RunOnVirtualThread
+    @ConsumeEvent("start")
+    public void start(String ignore) {
+        try {
+            if (isActive(times.get())) {
+                checkAndUpdate();
+            }
+        } finally {
+            bus.publish("finish", null);
+        }
+    }
 
-    @Startup
-    public void startUp() {
-        managedExecutor.execute(this::checkAndUpdate);
+    @RunOnVirtualThread
+    @ConsumeEvent("finish")
+    public void finish(String ignore) {
+        if (isActive(times.incrementAndGet())) {
+            Optional.of(config)
+                    .map(Config::getInterval)
+                    .map(Duration::toMillis)
+                    .ifPresent(this::sleep);
+            bus.publish("start", null);
+        } else {
+            Quarkus.asyncExit();
+        }
     }
 
     public void checkAndUpdate() {
-        try {
-            if (Boolean.TRUE.equals(config.getLogMemoryInfo())) {
-                helper.logMemoryInfo();
+        if (Boolean.TRUE.equals(config.getLogMemoryInfo())) {
+            helper.logMemoryInfo();
+        }
+
+        final String checkDomainIp = Optional.of(config)
+                .filter(c -> Boolean.TRUE.equals(c.getSelfCheck()))
+                .map(Config::getSelfCheckUrl)
+                .map(URI::getHost)
+                .map(helper::findDnsIp)
+                .orElse(null);
+
+        if (checkDomainIp != null && selfChecker.selfCheck()) {
+            List<DynDnsConfig> toUpdateList = findInvalidDomains(config.getDynDnsConfigs(), checkDomainIp);
+            if (toUpdateList.isEmpty()) {
+                logger.info("All domains have the correct ip! No update needed!");
+            } else {
+                logger.info("Domains with wrong ip found!");
+                updateDynDns(toUpdateList, checkDomainIp);
             }
-
-            final String checkDomainIp = Optional.of(config)
-                    .filter(c -> Boolean.TRUE.equals(c.getSelfCheck()))
-                    .map(Config::getSelfCheckUrl)
-                    .map(helper::getHost)
-                    .map(helper::findDnsIp)
-                    .orElse(null);
-
-            if (checkDomainIp != null && selfChecker.selfCheck()) {
-                List<DynDnsConfig> toUpdateList = findInvalidDomains(config.getDynDnsConfigs(), checkDomainIp);
+        } else {
+            logger.info("Try to fetch wanted IP!");
+            final String wantedIp = wantedIpResolver.resolveWantedIp();
+            if (wantedIp == null) {
+                logger.warn("Unable to fetch external IP! Unable to update!");
+            } else {
+                logger.info("Wanted ip is '%s' and self check domain ip is %s!".formatted(wantedIp, checkDomainIp));
+                List<DynDnsConfig> toUpdateList = findInvalidDomains(config.getDynDnsConfigs(), wantedIp);
                 if (toUpdateList.isEmpty()) {
                     logger.info("All domains have the correct ip! No update needed!");
                 } else {
                     logger.info("Domains with wrong ip found!");
-                    updateDynDns(toUpdateList, checkDomainIp);
-                }
-            } else {
-                logger.info("Try to fetch wanted IP!");
-                final String wantedIp = wantedIpResolver.resolveWantedIp();
-                if (wantedIp == null) {
-                    logger.warn("Unable to fetch external IP! Unable to update!");
-                } else {
-                    logger.info("Wanted ip is '%s' and self check domain ip is %s!".formatted(wantedIp, checkDomainIp));
-                    List<DynDnsConfig> toUpdateList = findInvalidDomains(config.getDynDnsConfigs(), wantedIp);
-                    if (toUpdateList.isEmpty()) {
-                        logger.info("All domains have the correct ip! No update needed!");
-                    } else {
-                        logger.info("Domains with wrong ip found!");
-                        updateDynDns(toUpdateList, wantedIp);
-                    }
+                    updateDynDns(toUpdateList, wantedIp);
                 }
             }
-        } finally {
-            final int currentTimes = times.incrementAndGet();
-            Optional.of(config)
-                    .map(Config::getTimes)
-                    .filter(i -> i > 0)
-                    .filter(i -> currentTimes >= i)
-                    .ifPresentOrElse(
-                            ignore -> Quarkus.asyncExit(),
-                            () -> managedExecutor.execute(this::sleepAndRepeat)
-                    );
         }
-    }
-
-    public void sleepAndRepeat() {
-        Optional.of(config)
-                .map(Config::getInterval)
-                .map(Duration::toMillis)
-                .ifPresent(this::sleep);
-        managedExecutor.execute(this::checkAndUpdate);
     }
 
     public void sleep(long millis) {
@@ -161,6 +160,17 @@ public class CheckAndUpdateApp {
         } catch (Exception e) {
             logger.error("Unable to update IP for domains '%s'".formatted(domains), e);
         }
+    }
+
+    private boolean isActive(int currentTimes) {
+        final int wantedTimes = getTimes();
+        return wantedTimes < 0 || wantedTimes > currentTimes;
+    }
+
+    private int getTimes() {
+        return Optional.of(config)
+                .map(Config::getTimes)
+                .orElse(-1);
     }
 
     private List<DynDnsConfig> findInvalidDomains(List<DynDnsConfig> dynDnsConfigs, String wantedIp) {

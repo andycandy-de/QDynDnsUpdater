@@ -14,4 +14,9 @@ public class StaticWantedIpResolver implements IWantedIpResolver {
     public String resolveWantedIp() {
         return config.getIpResolverStaticIp();
     }
+
+    @Override
+    public String getType() {
+        return "static";
+    }
 }

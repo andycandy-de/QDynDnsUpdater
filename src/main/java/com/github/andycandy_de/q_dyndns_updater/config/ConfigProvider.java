@@ -2,6 +2,7 @@ package com.github.andycandy_de.q_dyndns_updater.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -9,6 +10,7 @@ import org.jboss.logging.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -33,10 +35,10 @@ public class ConfigProvider {
     Optional<Boolean> selfCheck;
 
     @ConfigProperty(name = ConfigConst.CONFIG_SELF_CHECK_URL)
-    Optional<String> selfCheckUrl;
+    Optional<URI> selfCheckUrl;
 
     @ConfigProperty(name = ConfigConst.CONFIG_UPDATE_URL)
-    Optional<String> updateUrl;
+    Optional<URI> updateUrl;
 
     @ConfigProperty(name = ConfigConst.CONFIG_USERNAME)
     Optional<String> username;
@@ -57,7 +59,7 @@ public class ConfigProvider {
     Optional<String> ipResolverType;
 
     @ConfigProperty(name = ConfigConst.CONFIG_IP_RESOLVER_HTTP_GET_URL)
-    Optional<String> ipResolverGetUrl;
+    Optional<URI> ipResolverGetUrl;
 
     @ConfigProperty(name = ConfigConst.CONFIG_IP_RESOLVER_STATIC_IP)
     Optional<String> ipResolverStaticIp;
@@ -145,12 +147,12 @@ public class ConfigProvider {
             return objectMapper.readValue(file, Config.class);
         } catch (IOException e) {
             logger.error("Unable to read config from file '%s'!".formatted(file.getAbsoluteFile()), e);
-            return Config.builder().dynDnsConfigs(List.of()).build();
+            throw new RuntimeException("Unable to read config from file '%s'!".formatted(file.getAbsoluteFile()), e);
         }
     }
 
     @Produces
-    @ApplicationScoped
+    @RequestScoped
     public Config produce() throws WrongConfigException {
         return validateConfig(getConfig());
     }
