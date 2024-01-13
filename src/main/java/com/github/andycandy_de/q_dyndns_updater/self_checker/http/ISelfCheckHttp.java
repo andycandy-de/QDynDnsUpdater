@@ -1,4 +1,4 @@
-package com.github.andycandy_de.q_dyndns_updater.http;
+package com.github.andycandy_de.q_dyndns_updater.self_checker.http;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;

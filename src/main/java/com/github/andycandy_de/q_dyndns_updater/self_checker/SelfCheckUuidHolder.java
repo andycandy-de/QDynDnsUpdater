@@ -1,4 +1,4 @@
-package com.github.andycandy_de.q_dyndns_updater;
+package com.github.andycandy_de.q_dyndns_updater.self_checker;
 
 import jakarta.enterprise.context.ApplicationScoped;
 

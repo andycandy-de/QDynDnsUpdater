@@ -1,7 +1,7 @@
 package com.github.andycandy_de.q_dyndns_updater.wanted_ip_resolver;
 
+import com.github.andycandy_de.q_dyndns_updater.Helper;
 import com.github.andycandy_de.q_dyndns_updater.config.Config;
-import com.github.andycandy_de.q_dyndns_updater.helper.Helper;
 import com.github.andycandy_de.q_dyndns_updater.http_client.IGetStringHttp;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;

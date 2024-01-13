@@ -1,9 +1,8 @@
 package com.github.andycandy_de.q_dyndns_updater.self_checker;
 
-import com.github.andycandy_de.q_dyndns_updater.SelfCheckUuidHolder;
+import com.github.andycandy_de.q_dyndns_updater.Helper;
 import com.github.andycandy_de.q_dyndns_updater.config.Config;
-import com.github.andycandy_de.q_dyndns_updater.helper.Helper;
-import com.github.andycandy_de.q_dyndns_updater.http.ISelfCheckHttp;
+import com.github.andycandy_de.q_dyndns_updater.self_checker.http.ISelfCheckHttp;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;

@@ -1,5 +1,6 @@
-package com.github.andycandy_de.q_dyndns_updater.helper;
+package com.github.andycandy_de.q_dyndns_updater;
 
+import com.github.andycandy_de.q_dyndns_updater.config.DynDnsConfig;
 import io.quarkus.rest.client.reactive.QuarkusRestClientBuilder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -10,6 +11,8 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.Base64;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -38,10 +41,34 @@ public class Helper {
                 .orElseThrow();
     }
 
+    public List<DynDnsConfig> filterConfigWithDomainIpNotEquals(List<DynDnsConfig> dynDnsConfigs, String ip) {
+        return dynDnsConfigs.stream()
+                .map(c -> filterDomainsWithIpNotEquals(c, ip))
+                .filter(c -> !c.getDomains().isEmpty())
+                .toList();
+    }
+
+    public DynDnsConfig filterDomainsWithIpNotEquals(DynDnsConfig dynDnsConfig, String ip) {
+        DynDnsConfig copy = dynDnsConfig.toBuilder().build();
+        copy.setDomains(filterDomainsWithIpNotEquals(dynDnsConfig.getDomains(), ip));
+        return copy;
+    }
+
+    public List<String> filterDomainsWithIpNotEquals(List<String> domains, String ip) {
+        return domains.stream()
+                .filter(d -> !isDomainIpEquals(d, ip))
+                .toList();
+    }
+
+    public boolean isDomainIpEquals(String domain, String ip) {
+        return Objects.equals(findDnsIp(domain), ip);
+    }
+
     public String findDnsIp(String domain) {
         try {
             return InetAddress.getByName(domain).getHostAddress();
         } catch (UnknownHostException e) {
+            logger.warn("Unable to resolve domain '%s'!".formatted(domain), e);
             return null;
         }
     }

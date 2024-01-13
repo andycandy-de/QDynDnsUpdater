@@ -1,7 +1,7 @@
-package com.github.andycandy_de.q_dyndns_updater.http.impl;
+package com.github.andycandy_de.q_dyndns_updater.self_checker.http.impl;
 
-import com.github.andycandy_de.q_dyndns_updater.SelfCheckUuidHolder;
-import com.github.andycandy_de.q_dyndns_updater.http.ISelfCheckHttp;
+import com.github.andycandy_de.q_dyndns_updater.self_checker.SelfCheckUuidHolder;
+import com.github.andycandy_de.q_dyndns_updater.self_checker.http.ISelfCheckHttp;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
 import org.jboss.logging.Logger;
