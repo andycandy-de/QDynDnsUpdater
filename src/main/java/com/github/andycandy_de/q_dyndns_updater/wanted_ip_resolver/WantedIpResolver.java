@@ -21,7 +21,7 @@ public class WantedIpResolver {
 
     public String resolveWantedIp() {
 
-        final List<String> result =  wantedIpResolvers.stream()
+        final List<String> result = wantedIpResolvers.stream()
                 .filter(this::filterType)
                 .map(IWantedIpResolver::resolveWantedIp)
                 .toList();
