@@ -6,6 +6,7 @@ import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 
+import java.util.List;
 import java.util.Objects;
 
 @ApplicationScoped
@@ -19,11 +20,17 @@ public class WantedIpResolver {
     Config config;
 
     public String resolveWantedIp() {
-        return wantedIpResolvers.stream()
+
+        final List<String> result =  wantedIpResolvers.stream()
                 .filter(this::filterType)
                 .map(IWantedIpResolver::resolveWantedIp)
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("No valid type found! %s".formatted(config.getIpResolverType())));
+                .toList();
+
+        if (result.isEmpty()) {
+            throw new RuntimeException("No valid type found! %s".formatted(config.getIpResolverType()));
+        }
+
+        return result.getFirst();
     }
 
     private boolean filterType(IWantedIpResolver wantedIpResolver) {
