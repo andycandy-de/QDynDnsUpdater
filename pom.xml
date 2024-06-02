@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.andycandy-de</groupId>
   <artifactId>q-dyndns-updater</artifactId>
-  <version>1.0.3</version>
+  <version>1.0.4-SNAPHOST</version>
   <properties>
     <compiler-plugin.version>3.11.0</compiler-plugin.version>
     <maven.compiler.release>21</maven.compiler.release>
